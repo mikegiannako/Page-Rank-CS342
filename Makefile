@@ -3,7 +3,7 @@ CFLAGS = -Wall -g -pthread
 .PHONY: road
 all: main
 
-main: main.o node.o
+main: main.o random.o node.o
 	$(CC) $(CFLAGS) $^ -o page_rank.exe
 
 %.o:%.c

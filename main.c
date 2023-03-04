@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <pthread.h>
 #include "node.h"
+#include "random.h"
 
 #define BUFFER_SIZE 1024
 
@@ -35,6 +36,9 @@ int main(int argc, char* argv[]){
     // Parses the input file and returns an array of nodes
     Node* nodes = parse_file(input_file);
 
+    // Find the number of nodes and save it to a variable
+    int num_nodes = 0;
+    while(nodes[num_nodes]->id != -1) num_nodes++;
 
     /* --------------------------- Thread Init --------------------------- */
 
@@ -49,12 +53,25 @@ int main(int argc, char* argv[]){
         break;
     }
 
+    /* ------------------------ Node Queue Init ------------------------ */
+
+    // Creates a queue of node indexes to be processed
+    // The queu is implemented with an array and an index to the next node to be processed
+    int* node_queue = random_array(num_nodes);
+
     /* --------------------------- Main Loop --------------------------- */
 
-    long int i = 0;
-    while(nodes[i]->id != -1) {
-        print_node(nodes[i]);
-        i++;
+    // Prints the node_queue array
+    printf("Node Queue: ");
+    for(int i = 0; i < num_nodes; i++) {
+        printf("%d ", node_queue[i]);
+    }
+    printf("\n");
+
+    // Main Loop
+    for(int i = 0; i < iterations; i++) {
+        // Prints the nodes
+        printf("Iteration %d
     }
 
     /* --------------------------- Clean-up --------------------------- */
