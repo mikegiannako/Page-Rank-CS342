@@ -8,36 +8,27 @@ Node create_node(size_t connections, long int id){
     node->connections = connections;
     node->adjacent = malloc(sizeof(int) * connections);
     node->value = 1.0;
-    node->lock = (pthread_mutex_t) PTHREAD_MUTEX_INITIALIZER;
     return node;
 }
 
-// Applies the page rank algorithm to the given node.
-// The node holds 15% of its value and distributes the remaining 85% to its
-// adjacent nodes.
-void page_rank(Node node, Node* node_list){
-
-    pthread_mutex_lock(&node->lock);
-    // Hold 15% of the value
-    float value = node->value * 0.15;
-    node->value = value;
-
-    // Distribute 85% of the value to the adjacent nodes
-    float share = (node->value - value) / node->connections;
-    pthread_mutex_lock(&node->lock);
+// Sets the value of the node to 15% (of what it was) and stores the value that each of its
+// adjacent nodes will receive in the thread_values array at the given index
+void page_rank(Node node, double* thread_values){
+    double new = node->value * 0.15;
+    double share = (node->value - new) / node->connections;
+    node->value = new;
 
     for (int i = 0; i < node->connections; i++) {
-        distribute(node_list[node->adjacent[i]], share);
+        thread_values[node->adjacent[i]] += share;
     }
 }
 
-// Distributes the given share to the particular node. This is a
-// thread-safe operation. The node's lock is acquired before the
-// operation and released after the operation.
-void distribute(Node node, float share){
-    pthread_mutex_lock(&node->lock);
-    node->value += share;
-    pthread_mutex_unlock(&node->lock);
+// Adds the given share to the value of the node based on the values in the thread_values array
+void distribute(Node node, double** thread_values, int num_threads){
+    for (int i = 0; i < num_threads; i++) {
+        node->value += thread_values[i][node->id];
+        thread_values[i][node->id] = 0;
+    }
 }
 
 // Prints the given node
@@ -53,6 +44,10 @@ void print_node(Node node){
         }
     }
     printf("]\n");
+}
+
+void print_value(Node node){
+    printf("Node %ld: %f\n", node->id, node->value);
 }
 
 // Frees the memory allocated for the given node
