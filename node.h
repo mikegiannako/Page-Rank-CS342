@@ -4,25 +4,31 @@
 #include <stdlib.h>
 #include <pthread.h>
 
-typedef struct node {
+typedef struct list_node{
     long int id;
-    size_t connections;
-    int *adjacent;
+    struct list_node *next;
+}* ListNode;
+
+typedef struct graph_node {
+    long int id;
     double value;
-}* Node;
+    size_t connections;
+    ListNode incoming;
+}* GraphNode;
 
 // Initializes a node with the given number of connections
-Node create_node(size_t connections, long int id);
-// Sets the value of the node to 15% (of what it was) and stores the value that each of its
-// adjacent nodes will receive in the thread_values array
-void page_rank(Node node, double* thread_values);
-// Adds the given share to the value of the node based on the values in the thread_values array
-void distribute(Node node, double** thread_values, int num_threads);
-// Prints the given node
-void print_node(Node node);
-// Prints the value of the given node
-void print_value(Node node);
-// Frees the memory allocated for the given node
-void free_node(Node node);
+GraphNode create_node(long int id);
+// initializes a list node with the given id
+ListNode create_list_node(long int id);
+// Adds the given node to the list of incoming nodes
+void add_incoming(GraphNode node, long int id);
+// Calculates the sum of the values of the incoming nodes
+double sum_incoming(GraphNode node, double* share_values);
+// Free the memory allocated for the given list
+void free_list(ListNode list);
+// Free the memory allocated for the given graph node
+void free_graph_node(GraphNode graph);
+// Prints the value of the given graph node
+void print_value(GraphNode node);
 
 #endif // _NODE_H_

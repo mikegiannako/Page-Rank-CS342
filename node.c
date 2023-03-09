@@ -1,57 +1,61 @@
 #include <stdio.h>
 #include "node.h"
 
-// Initializes a node with the given number of connections
-Node create_node(size_t connections, long int id){
-    Node node = malloc(sizeof(struct node));
+// Initializes a graph node with the given number of connections
+GraphNode create_node(long int id){
+    GraphNode node = malloc(sizeof(struct graph_node));
     node->id = id;
-    node->connections = connections;
-    node->adjacent = malloc(sizeof(int) * connections);
+    node->connections = 0;
     node->value = 1.0;
+    node->incoming = NULL;
     return node;
 }
 
-// Sets the value of the node to 15% (of what it was) and stores the value that each of its
-// adjacent nodes will receive in the thread_values array at the given index
-void page_rank(Node node, double* thread_values){
-    double new = node->value * 0.15;
-    double share = (node->value - new) / node->connections;
-    node->value = new;
-
-    for (int i = 0; i < node->connections; i++) {
-        thread_values[node->adjacent[i]] += share;
-    }
+// initializes a list node with the given id
+ListNode create_list_node(long int id){
+    ListNode node = malloc(sizeof(struct list_node));
+    node->id = id;
+    node->next = NULL;
+    return node;
 }
 
-// Adds the given share to the value of the node based on the values in the thread_values array
-void distribute(Node node, double** thread_values, int num_threads){
-    for (int i = 0; i < num_threads; i++) {
-        node->value += thread_values[i][node->id];
-        thread_values[i][node->id] = 0;
-    }
+// Adds the given node to the list of incoming nodes
+void add_incoming(GraphNode node, long int id){
+    ListNode new_node = create_list_node(id);
+    new_node->next = node->incoming;
+    node->incoming = new_node;
 }
 
-// Prints the given node
-void print_node(Node node){
-    printf("Node %ld: %f ", node->id, node->value);
-    
-    // Prints the adjacent nodes
-    printf("[");
-    for (int i = 0; i < node->connections; i++) {
-        printf("%d", node->adjacent[i]);
-        if(i != node->connections - 1) {
-            printf(", ");
-        }
+// Calculates the sum of the values of the incoming nodes
+double sum_incoming(GraphNode node, double* share_values){
+    double sum = 0;
+    ListNode current = node->incoming;
+    while(current != NULL){
+        sum += share_values[current->id];
+        current = current->next;
     }
-    printf("]\n");
+    return sum;
 }
 
-void print_value(Node node){
+// Free the memory allocated for the given list
+void free_list(ListNode list){
+    if(list == NULL){
+        return;
+    }
+    free_list(list->next);
+    free(list);
+}
+
+// Free the memory allocated for the given graph node
+void free_graph_node(GraphNode graph){
+    if(graph == NULL){
+        return;
+    }
+    free_list(graph->incoming);
+    free(graph);
+}
+
+// Prints the value of the given graph node
+void print_value(GraphNode node){
     printf("Node %ld: %f\n", node->id, node->value);
-}
-
-// Frees the memory allocated for the given node
-void free_node(Node node){
-    free(node->adjacent);
-    free(node);
 }
