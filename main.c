@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <pthread.h>
 #include <time.h>
+#include <string.h>
 #include "node.h"
 #include "random.h"
 
 #define BUFFER_SIZE 1024
 #define DAMPING_FACTOR 0.85
+#define ITERATIONS 500
  
 typedef struct args {
     GraphNode* nodes;
@@ -26,12 +28,12 @@ ThreadArg create_thread_arg(GraphNode* nodes, int* node_queue, double* share_val
 // Parses the input file and returns an alloated array of nodes
 GraphNode* parse_file(FILE* inp);
 // Writes the results to the output file (which is in CSV format)
-void write_results(GraphNode* nodes, int num_nodes, int num_threads, int iters);
+void write_results(GraphNode* nodes, int num_nodes, int num_threads, int iters, char* filename);
 // The main function of the thread
 void* thread_main(void* arg);
 
 
-// Usage: ./main <input_file> <number_of_threads> (<number_of_iterations>)
+// Usage: ./page_rank <input_file> <number_of_threads> (-i <number_of_iterations>) (-m <mode>)
 // Default value of iterations is 50
 int main(int argc, char* argv[]){
 
@@ -39,16 +41,35 @@ int main(int argc, char* argv[]){
 
     /* --------------------------- Argument Checking --------------------------- */
     if(argc < 3) {
-        printf("Usage: ./main <input_file> <number_of_threads> (<number_of_iterations>)\n");
+        printf("Usage: ./main <input_file> <number_of_threads> (-i <number_of_iterations>) (-m <mode>)\n");
         return 0;
     }
 
     // Default value of iterations is 50
-    int iterations = 50;
+    int iterations = ITERATIONS;
 
-    // If the user specified the number of iterations, we use that value
-    if(argc == 4) {
-        iterations = atoi(argv[3]);
+    // Default value of mode is 0 mode is used so the algorithm doesn't write to a file when
+    // measuring speeds of different numbers of threads
+    int mode = 0;
+
+    // If the user specified the number of iterations, save it to a variable
+    if(argc > 3) {
+        if(strcmp(argv[3], "-i") == 0) {
+            iterations = atoi(argv[4]);
+        }
+        else if(strcmp(argv[3], "-m") == 0) {
+            mode = atoi(argv[4]);
+        }
+    }
+
+    // If the user specified the mode, save it to a variable
+    if(argc > 5) {
+        if(strcmp(argv[5], "-i") == 0) {
+            iterations = atoi(argv[6]);
+        }
+        else if(strcmp(argv[5], "-m") == 0) {
+            mode = atoi(argv[6]);
+        }
     }
 
     /* --------------------------- Input Parsing --------------------------- */
@@ -109,7 +130,7 @@ int main(int argc, char* argv[]){
     }
 
     // Saves the results to the output file
-    write_results(nodes, num_nodes, num_threads, iterations);
+    if(!mode) write_results(nodes, num_nodes, num_threads, iterations, argv[1]);
 
     // Frees the memory allocated for the nodes
     for(int i = 0; i < num_threads; i++)
@@ -242,17 +263,30 @@ GraphNode* parse_file(FILE* inp){
 }
 
 // Writes the results to the output file (which is in CSV format)
-void write_results(GraphNode* nodes, int num_nodes, int num_threads, int iters){
+void write_results(GraphNode* nodes, int num_nodes, int num_threads, int iters, char* filename){
     FILE *fptr;
 
     // Construct the filename, which is in the format:
-    // page_rank_<num_threads>_<iters>.csv
+    // <filename>_<num_threads>_<iters>.csv
 
-    char filename[100];
-    sprintf(filename, "page_rank_%d_%d.csv", num_threads, iters);
+    char temp[BUFFER_SIZE];
+
+    // We need to remove the test/ prefix and the .txt suffix from the filename
+    char* file = strtok(filename, "/");
+    while(file != NULL){
+        strcpy(temp, file);
+        file = strtok(NULL, "/");
+    }
+
+    // Remove the .txt suffix
+    temp[strlen(temp) - 4] = '\0';
+
+
+    char finalname[BUFFER_SIZE * 2];
+    sprintf(finalname, "%s_%d_%d.csv", temp, num_threads, iters);
 
     // Checking if the file already exists, else we create a new one
-    if(!(fptr = fopen(filename, "rb+"))) fptr = fopen(filename, "wb");
+    if(!(fptr = fopen(finalname, "rb+"))) fptr = fopen(finalname, "wb");
 
     // Write the results to the file, the format is:
     // node, pagerank

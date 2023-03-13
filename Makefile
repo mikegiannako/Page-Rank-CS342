@@ -9,5 +9,8 @@ main: main.o random.o node.o
 %.o:%.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 
+clean_results:
+	-rm -f *.csv
+
 clean:
 	-rm -f *.exe *.o
