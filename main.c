@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <pthread.h>
-#include <time.h>
 #include <string.h>
 #include "node.h"
 #include "random.h"
@@ -36,8 +35,6 @@ void* thread_main(void* arg);
 // Usage: ./page_rank <input_file> <number_of_threads> (-i <number_of_iterations>) (-m <mode>)
 // Default value of iterations is 50
 int main(int argc, char* argv[]){
-
-    clock_t begin = clock();
 
     /* --------------------------- Argument Checking --------------------------- */
     if(argc < 3) {
@@ -140,9 +137,6 @@ int main(int argc, char* argv[]){
     free(pr_values);
     free(node_queue);
 
-    clock_t end = clock();
-    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("Time spent: %f\n", time_spent);
     return 0;
 }
 
