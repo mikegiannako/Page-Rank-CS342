@@ -7,8 +7,11 @@ To compile the code, run the following command:
 
 ### Run
 To run the code, run the following command:
-    
+        
         $ ./page_rank <input_file> <number_of_threads> (-i <number_of_iterations>) (-m <mode>)
+        
+        <mode> argument: 0 is the default option, program produces csv file with resutls
+                         other value doesn't produce files, used for speed measurements
 
 ### Input format
 The input file should be in the following format:
