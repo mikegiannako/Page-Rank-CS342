@@ -121,6 +121,8 @@ int main(int argc, char* argv[]){
 
     /* --------------------------- Clean-up --------------------------- */
 
+    // Destroys the barrier
+    pthread_barrier_destroy(&barrier);
 
     for(int i = 0; i < num_threads; i++) {
         pthread_join(threads[i], NULL);
